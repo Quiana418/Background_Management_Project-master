@@ -17,87 +17,47 @@
 
     <el-container>
       <!-- 侧边 -->
-      <el-aside width="200px">
+      <el-aside :width="isCollapse ? '64px' : '200px'">
         <el-button
           :collapse="isCollapse"
-          class="toggleMenu"
+          :class="isCollapse ? 'smallMenu' : 'spendMenu'"
           @click="isCollapse = !isCollapse"
+          :cursor-pointer="true"
         >
           | | |
         </el-button>
+
+        <!-- default-active="" 让当前显示的页面的侧边栏高亮 点击时把当前点击的路径存储起来  -->
         <el-menu
           background-color="#373d41"
           text-color="#fff"
           unique-opened
-          default-active="1-4-1"
-          class="el-menu-vertical-demo"
+          :default-active="activePath"
           :collapse="isCollapse"
-          @open="handleOpen"
-          @close="handleClose"
+          @click="isCollapse = !isCollapse"
+          :collapse-transition="false"
+          router
         >
-          <el-submenu index="1">
+          <!-- 一级菜单 -->
+          <el-submenu
+            :index="item.id + ''"
+            v-for="item in asideMenu"
+            :key="item.id"
+          >
             <template #title>
-              <i class="iconfont icon-haoyou"></i>
-              <span>用户管理</span>
+              <i :class="iconsObj[item.id]"></i>
+              <span>{{ item.authName }}</span>
             </template>
-            <el-menu-item index="1-1">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'users' })">用户列表</span>
-            </el-menu-item>
-          </el-submenu>
-          <el-submenu index="2">
-            <template #title>
-              <i class="iconfont icon-ego-boxfull"></i>
-              权限管理
-            </template>
-            <el-menu-item index="2-1">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'roles' })">角色列表</span>
-            </el-menu-item>
-            <el-menu-item index="2-2">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'rights' })">权限列表</span>
-            </el-menu-item>
-          </el-submenu>
-          <el-submenu index="3">
-            <template #title>
-              <i class="iconfont icon-shangpin-xianxing"></i>
-              商品管理
-            </template>
-            <el-menu-item index="3-1">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'goods' })">商品列表</span>
-            </el-menu-item>
-            <el-menu-item index="3-2">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
+            <!-- 二级菜单 -->
 
-              <span @click="$router.push({ name: 'params' })">分类参数</span>
-            </el-menu-item>
-            <el-menu-item index="3-3">
+            <el-menu-item
+              @click="saveActivePath('/' + subItem.path)"
+              :index="'/' + subItem.path"
+              v-for="subItem in item.children"
+              :key="subItem.id"
+            >
               <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'categories' })"
-                >商品分类</span
-              >
-            </el-menu-item>
-          </el-submenu>
-          <el-submenu index="4">
-            <template #title>
-              <i class="iconfont icon-dingdan"></i>
-              订单管理
-            </template>
-            <el-menu-item index="4-1">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'orders' })">订单列表</span>
-            </el-menu-item>
-          </el-submenu>
-          <el-submenu index="5">
-            <template #title>
-              <i class="iconfont icon-shujukanban"></i>
-              数据统计
-            </template>
-            <el-menu-item index="5-1">
-              <i class="iconfont icon-dasuolvetuliebiao"></i>
-              <span @click="$router.push({ name: 'reports' })">数据报表</span>
+              <span>{{ subItem.authName }}</span>
             </el-menu-item>
           </el-submenu>
         </el-menu>
@@ -106,7 +66,7 @@
 
       <!-- 内容区域 -->
       <el-main>
-        <!-- 二级路由切换点 -->
+        <!-- 二级路由切换点 子页面就在这里显示-->
         <router-view />
       </el-main>
       <!-- 内容区域 -->
@@ -115,22 +75,45 @@
 </template>
 
 <script>
+import { getAsideMenu } from '@/api/asideMenu'
 export default {
   name: 'Layout',
-  created () { },
+  async created () {
+    // 取出当前点击的侧边栏路径
+    this.activePath = window.localStorage.getItem('activePath')
+    // 请求左侧侧边栏菜单
+    try {
+      const res = await getAsideMenu()
+      console.log(res)
+      this.asideMenu = res.data.data
+    } catch (err) {
+      console.log(err)
+    }
+  },
   data () {
     return {
       // 控制左侧菜单栏是否折叠
-      isCollapse: false
+      isCollapse: false,
+      // 左侧菜单栏
+      asideMenu: [],
+      // 左侧菜单栏图标对象
+      iconsObj: {
+        125: 'iconfont icon-haoyou',
+        103: 'iconfont icon-ego-boxfull',
+        101: 'iconfont icon-shangpin-xianxing',
+        102: 'iconfont icon-dingdan',
+        145: 'iconfont icon-shujukanban'
+      },
+      // 存储当前被点击激活的侧边栏路径
+      activePath: ''
     }
   },
   methods: {
-    // 控制左侧菜单栏折叠 展开
-    handleOpen (key, keyPath) {
-      console.log(key, keyPath)
-    },
-    handleClose (key, keyPath) {
-      console.log(key, keyPath)
+    // 点击存储当前点击的路径
+    saveActivePath (activePath) {
+      window.localStorage.setItem('activePath', activePath)
+      // 点击之后 重新赋值
+      this.activePath = activePath
     }
   },
   computed: {},
@@ -141,10 +124,28 @@ export default {
 </script>
 
 <style scoped lang='less'>
-/deep/.el-menu-vertical-demo:not(.el-menu--collapse) {
+/deep/.el-menu--vertical {
+  height: 50px;
+}
+.el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
-  min-width: 64px;
   min-height: 400px;
+}
+.small {
+  width: 64px;
+}
+.big {
+  width: 200px;
+}
+.smallMenu {
+  color: #fff;
+  width: 64px;
+  border: none !important;
+  border-radius: unset;
+  background-color: #34e7e4 !important;
+}
+.spendMenu {
+  width: 200px;
 }
 .container {
   height: 100vh;
@@ -179,25 +180,14 @@ export default {
     }
     .el-button {
       color: #606266;
-      font-size: 14px;
+      font-size: 12px;
     }
   }
   /deep/.el-submenu__title {
     background-color: #0d2737 !important;
   }
-  .el-aside {
+  /deep/.el-aside {
     background-color: #0d2737;
-    .toggleMenu {
-      border: 0;
-      border-radius: unset;
-      text-align: center;
-      font-size: 20px;
-      color: #fff;
-      width: 200px;
-      height: 40px;
-      line-height: 10px;
-      background-color: #34e7e4;
-    }
   }
   .el-main {
     padding: 20px;
@@ -212,6 +202,15 @@ export default {
   /deep/.el-menu-item {
     // background-color: #d2cdda !important;
     background-color: #1b3f55 !important;
+  }
+  /deep/.spendMenu {
+    border-radius: unset;
+    border: none;
+    background-color: #34e7e4 !important;
+    span {
+      font-size: 20px;
+      color: #fff;
+    }
   }
 }
 </style>
