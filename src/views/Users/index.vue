@@ -89,7 +89,7 @@
                 <el-button
                   type="info"
                   icon="el-icon-setting"
-                  @click="dialogFormVisible1 = true"
+                  @click="distributeRole(scope.row)"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -157,9 +157,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible1 = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible1 = false"
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="distributeUserRole">确 定</el-button>
       </div>
     </el-dialog>
     <!-- 点击分配角色按钮 弹窗 -->
@@ -212,7 +210,8 @@
 </template>
 
 <script>
-import { editUserState, addUser } from '@/api/user'
+// distributeUserRole
+import { editUserState, addUser, delUser } from '@/api/user'
 import { validMobile, validEmail } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 export default {
@@ -243,7 +242,7 @@ export default {
       tableRowClassName: '',
       // 控制编辑 弹窗
       dialogFormVisible: false,
-      // 控制信息 弹窗
+      // 控制分配角色 弹窗
       dialogFormVisible1: false,
       // 控制添加用户 弹窗
       dialogVisible: false,
@@ -327,13 +326,22 @@ export default {
       this.getUserList()
     },
 
-    // 点击实现 弹出删除弹窗
-    open () {
-      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-        confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
-      }).then(() => {
-        this.$message({ type: 'success', message: '删除成功!' })
-      }).catch(() => { this.$message({ type: 'info', message: '已取消删除' }) })
+    // 点击实现 弹出删除弹窗 删除用户
+    async open (id) {
+      try {
+        await this.$confirm('此操作将永久删除该文件, 是否继续?', '提示',
+          {
+            confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+          })
+        await delUser(id)
+        this.getUserList()
+      } catch (err) {
+        console.log(err)
+        this.$message({
+          type: 'info', message: '已取消删除'
+        }
+        )
+      }
     },
 
     // 编辑用户对话框 关闭时触发 重置表单
@@ -361,9 +369,9 @@ export default {
       this.dialogFormVisible = true
       // 1. 触发 根据id获取用户数据的请求
       this.$store.dispatch('user/getUserInfoById', id)
-      // 2. 触发 修改用户信息的请求
-      // this.$store.dispatch('user/editUserInfo', this.userInfos)
     },
+
+    // 2. 触发 修改用户信息的请求
     onConfirm () {
       this.$store.dispatch('user/editUserInfo', this.userInfos)
       this.dialogFormVisible = false
@@ -406,7 +414,20 @@ export default {
       })
     }
 
+    /* // 点击分配角色按钮 发起请求渲染数据到弹窗里
+    async distributeRole (row) {
+      this.dialogFormVisible1 = true
+      this.roleId = row.id
+    }, */
+
+    /* // 点击分配角色弹出框里的确认按钮 发起请求 分配角色
+    async distributeUserRole () {
+      const res = await distributeUserRole()
+      console.log(res)
+      this.dialogFormVisible1 = false
+    } */
   },
+
   computed: {
     //  获取到的数据---用户数据列表
     ...mapGetters(['userList']),
@@ -417,7 +438,9 @@ export default {
   watch: {},
   filters: {},
   components: {}
+
 }
+
 </script>
 
 <style scoped lang='less'>

@@ -80,13 +80,37 @@ export const getUserInfoById = (id) => {
 
 /**
  * 编辑用户资料
- * 响应的数据多处使用 请求写在actions里面
  * @param {用户id} id
  * @returns
  */
 export const editUserInfo = (data) => {
   return request({
     url: `/users/${data.id}`,
+    method: 'PUT',
+    data
+  })
+}
+
+/**
+ * 根据id删除用户
+ * @param {用户id} id
+ * @returns
+ */
+export const delUser = (id) => {
+  return request({
+    url: `users/${id}`,
+    method: 'DELETE'
+  })
+}
+
+/**
+ * 根据id rid分配用户角色
+ * @param {用户id} id
+ * @returns
+ */
+export const distributeUserRole = (data) => {
+  return request({
+    url: `users/${data.id}/role`,
     method: 'PUT',
     data
   })
