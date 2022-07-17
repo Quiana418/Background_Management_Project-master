@@ -5,13 +5,21 @@ import { Message } from 'element-ui'
 const state = {
   //  获取到的数据---用户数据列表
   userList: {},
-  // 获取到的 渲染到编辑按钮弹出框内的 t用户资料
-  editForm: {}
+  // 获取到的 渲染到编辑按钮弹出框内的 用户资料
+  editForm: {},
+  // 点击编辑按钮 获取到的用户邮箱 电话 渲染到表单中
+  userInfos: {}
 }
 
 const mutations = {
   setUserList (state, payload) {
     state.userList = payload
+  },
+  setEditForm (state, payload) {
+    state.editForm = payload
+  },
+  setUserInfos (state, payload) {
+    state.userInfos = payload
   }
 }
 
@@ -21,7 +29,8 @@ const actions = {
   async getUserList (context, params) {
     try {
       const res = await getUserList(params)
-      console.log(res)
+      // console.log(res)
+      // 存数据
       context.commit('setUserList', res.data.data)
     } catch (err) {
       Message.error(err.message)
@@ -31,8 +40,8 @@ const actions = {
   async editUserInfo (context, data) {
     try {
       const res = await editUserInfo(data)
-      console.log(res)
-      this.editForm = res.data.data
+      // console.log(res)
+      context.commit('setEditForm', res.data.data)
     } catch (err) {
       console.log(err)
     }
@@ -41,7 +50,8 @@ const actions = {
   async getUserInfoById (context, params) {
     try {
       const res = await getUserInfoById(params)
-      console.log(res)
+      // console.log(res)
+      context.commit('setUserInfos', res.data.data)
     } catch (err) {
       console.log(err)
     }

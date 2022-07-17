@@ -94,6 +94,7 @@ export default {
     /*  position: absolute;
     top: 110px;
     right: 273px; */
+    width: 500px;
     font-weight: 800;
     color: #a5fecb;
     font-size: 25px;
@@ -108,28 +109,31 @@ export default {
     height: 300px;
     padding: 30px 15px;
     box-sizing: border-box;
+    /deep/.el-input__inner {
+      width: 500px;
+      background-color: transparent;
+      border: 1px solid #ddd;
+      color: rgb(236, 232, 232);
+    }
+    .el-button {
+      margin-top: 0px;
+      margin-bottom: 30px;
+      width: 500px;
+      height: 40px;
+      background: linear-gradient(135deg, #1fa2ff, #12d8fa, #a6ffcb);
+    }
   }
   .btn-item {
     text-align: right;
   }
-  .el-button {
-    margin-top: 0px;
-    margin-bottom: 30px;
-    width: 370px;
-    height: 40px;
-    background: linear-gradient(135deg, #1fa2ff, #12d8fa, #a6ffcb);
-  }
+
   .el-form-item__content {
     line-height: 30px;
   }
   .el-button--info {
     margin: 0px;
   }
-  /deep/.el-input__inner {
-    background-color: transparent;
-    border: 1px solid #ddd;
-    color: rgb(236, 232, 232);
-  }
+
   .el-input--prefix {
     margin-bottom: 15px;
   }

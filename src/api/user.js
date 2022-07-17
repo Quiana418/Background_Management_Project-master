@@ -84,12 +84,10 @@ export const getUserInfoById = (id) => {
  * @param {用户id} id
  * @returns
  */
-export const editUserInfo = ({ id, email, mobile }) => {
+export const editUserInfo = (data) => {
   return request({
-    url: `users/${id}`,
+    url: `/users/${data.id}`,
     method: 'PUT',
-    data: {
-      email, mobile
-    }
+    data
   })
 }

@@ -109,31 +109,33 @@
       </el-pagination>
     </div>
     <!-- 点击编辑按钮 弹出弹窗 -->
-    <el-dialog title="编辑用户" :visible.sync="dialogFormVisible">
-      <el-form :model="form" :rules="rules" ref="editFormRef">
+    <el-dialog
+      title="编辑用户"
+      :visible.sync="dialogFormVisible"
+      @close="editDialogClose"
+    >
+      <el-form :model="userInfos" :rules="editFormRules" ref="editFormRef">
         <el-form-item label="用户名称" :label-width="formLabelWidth">
           <el-input
-            v-model="form.username"
+            v-model="userInfos.username"
             autocomplete="off"
             :disabled="true"
           ></el-input>
         </el-form-item>
         <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
-          <el-input v-model="form.email" autocomplete="off"></el-input>
+          <el-input v-model="userInfos.email" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
           label="手机号"
           :label-width="formLabelWidth"
           prop="mobile"
         >
-          <el-input v-model="form.mobile" autocomplete="off"></el-input>
+          <el-input v-model="userInfos.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false"
-          >确 定</el-button
-        >
+        <el-button @click="editDialogClose">取 消</el-button>
+        <el-button type="primary" @click="onConfirm">确 定</el-button>
       </div>
     </el-dialog>
     <!-- 点击编辑按钮 弹出弹窗 -->
@@ -250,24 +252,41 @@ export default {
         // 添加用户里的表单验证
         username1: '',
         password: '',
-        // 编辑按钮里的表单验证
-        username: 'admin',
         email: '',
         mobile: ''
       },
-      // 信息按钮的表单数据
+      // 信息设置按钮的表单数据
       form1: {
         region: ''
       },
       formLabelWidth: '160px',
-      // 编辑弹窗的表单验证
+      // 添加用户弹窗的表单验证
       rules: {
+        username1: [
+          { required: true, message: '用户名不能为空', trigger: 'blur' },
+          { min: 2, max: 7, message: '用户名长度在2-7个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '密码不能为空', trigger: 'blur' },
+          { min: 2, max: 7, message: '密码长度在2-7个字符', trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '邮箱不能为空', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
+        ],
         mobile: [
           { required: true, message: '手机号不能为空', trigger: 'blur' },
-          { validator: validateMobile, trigger: 'blur' }],
-        email: [{ required: true, message: '邮箱不能为空', trigger: 'blur' }, { validator: validateEmail, trigger: 'blur' }],
-        username1: [{ required: true, message: '用户名不能为空', trigger: 'blur' }, { min: 2, max: 7, message: '用户名长度在2-7个字符', trigger: 'blur' }],
-        password: [{ required: true, message: '密码不能为空', trigger: 'blur' }, { min: 2, max: 7, message: '密码长度在2-7个字符', trigger: 'blur' }]
+          { validator: validateMobile, trigger: 'blur' }]
+      },
+      // 编辑用户弹窗的校验规则
+      editFormRules: {
+        email: [
+          { required: true, message: '邮箱不能为空', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
+        ],
+        mobile: [
+          { required: true, message: '手机号不能为空', trigger: 'blur' },
+          { validator: validateMobile, trigger: 'blur' }]
       }
     }
   },
@@ -278,7 +297,7 @@ export default {
     },
     // 点击Switch切换时 提示消息  发起请求 改变用户状态
     async onChangeState (userInfo) {
-      console.log(userInfo)
+      // console.log(userInfo)
       try {
         const res = await editUserState({ uId: userInfo.id, type: userInfo.mg_state })
         // console.log(res)
@@ -292,6 +311,7 @@ export default {
         console.log(err)
       }
     },
+
     // 分页效果
     // 用户切换每条条数 数据改变时触发
     handleSizeChange (newSize) {
@@ -300,11 +320,13 @@ export default {
       // 切换之后 重新获取数据列表渲染页面
       this.getUserList()
     },
+
     // 页码值改变时触发
     handleCurrentChange (newPage) {
       this.user.pagenum = newPage
       this.getUserList()
     },
+
     // 点击实现 弹出删除弹窗
     open () {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -314,29 +336,53 @@ export default {
       }).catch(() => { this.$message({ type: 'info', message: '已取消删除' }) })
     },
 
-    // 点击编辑按钮 触发请求1. 根据id获取用户数据  2.修改用户信息   3.重置表单
+    // 编辑用户对话框 关闭时触发 重置表单
+    editDialogClose () {
+      // 重置表单
+      this.$refs.editFormRef.resetFields()
+      // 关闭弹窗
+      this.dialogFormVisible = false
+    },
+
+    // 点击编辑按钮 1.二次校验  2.触发请求--（1）根据id获取用户数据--（2）修改用户信息
     OnclickEdit (id) {
+      /* //  二次校验
+      this.$refs.editFormRef.validate(valid => {
+        if (!valid) return
+        // 二次校验成功
+        // 弹出弹窗
+        this.dialogFormVisible = true
+        // 1. 触发 根据id获取用户数据的请求
+        this.$store.dispatch('user/getUserInfoById', id)
+        // 2. 触发 修改用户信息的请求
+        this.$store.dispatch('user/editUserInfo', this.userInfo)
+      }) */
       // 弹出弹窗
       this.dialogFormVisible = true
       // 1. 触发 根据id获取用户数据的请求
       this.$store.dispatch('user/getUserInfoById', id)
       // 2. 触发 修改用户信息的请求
-      this.$store.dispatch('user/editUserInfo', id)
-      // 重置表单
-      this.$refs.editFormRef.resetFields()
+      // this.$store.dispatch('user/editUserInfo', this.userInfos)
     },
+    onConfirm () {
+      this.$store.dispatch('user/editUserInfo', this.userInfos)
+      this.dialogFormVisible = false
+      this.getUserList()
+    },
+
     // 点击 添加用户弹窗 确认/关闭
     handleClose () {
       // 点击关闭 重置表单
       this.$refs.addUserFormRef.resetFields()
     },
-    // 点击确定 退出弹窗 进行二次校验 校验通过 发起请求 添加用户
+
+    // 添加用户功能---点击确定 退出弹窗 进行二次校验 校验通过 发起请求
     confirmAddUser () {
       this.dialogVisible = false
       this.$refs.addUserFormRef.validate(async (valid) => {
         // console.log(valid)
         if (!valid) return {}
-        // 成功之后发起请求
+        // 二次校验成功之后发起请求
         try {
           const res = await addUser(
             {
@@ -362,7 +408,11 @@ export default {
 
   },
   computed: {
-    ...mapGetters(['userList'])
+    //  获取到的数据---用户数据列表
+    ...mapGetters(['userList']),
+    // 点击编辑按钮 获取到的用户邮箱 电话 渲染到表单中
+    ...mapGetters(['editForm']),
+    ...mapGetters(['userInfos'])
   },
   watch: {},
   filters: {},
@@ -391,7 +441,7 @@ export default {
   padding: 20px;
   margin: 20px;
   width: 100%;
-  height: 450px;
+  // height: 450px;
   background-color: #fff;
 }
 /deep/.data-v-acfe1f7e {
@@ -458,7 +508,10 @@ export default {
 }
 /deep/.addUser {
   .el-input__inner {
-    margin-left: -98px;
+    margin-left: -12px;
   }
+}
+.input-with-select {
+  width: 500px;
 }
 </style>
