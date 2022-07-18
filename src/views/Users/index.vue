@@ -329,7 +329,7 @@ export default {
     // 点击实现 弹出删除弹窗 删除用户
     async open (id) {
       try {
-        await this.$confirm('此操作将永久删除该文件, 是否继续?', '提示',
+        await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示',
           {
             confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
           })
@@ -354,17 +354,6 @@ export default {
 
     // 点击编辑按钮 1.二次校验  2.触发请求--（1）根据id获取用户数据--（2）修改用户信息
     OnclickEdit (id) {
-      /* //  二次校验
-      this.$refs.editFormRef.validate(valid => {
-        if (!valid) return
-        // 二次校验成功
-        // 弹出弹窗
-        this.dialogFormVisible = true
-        // 1. 触发 根据id获取用户数据的请求
-        this.$store.dispatch('user/getUserInfoById', id)
-        // 2. 触发 修改用户信息的请求
-        this.$store.dispatch('user/editUserInfo', this.userInfo)
-      }) */
       // 弹出弹窗
       this.dialogFormVisible = true
       // 1. 触发 根据id获取用户数据的请求
