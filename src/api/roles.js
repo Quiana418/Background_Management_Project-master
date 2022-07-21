@@ -50,3 +50,44 @@ export const delRole = (id) => {
     url: `roles/${id}`
   })
 }
+
+/**
+ * 根据id获取角色信息 渲染到角色对话框
+ * @param {角色id} id
+ * @returns
+ */
+export const getRoleInfo = (id) => {
+  return request({
+    url: `roles/${id}`
+  })
+}
+
+/**
+ * 编辑角色 提交
+ * @param {角色id} id
+ * @returns
+ */
+export const confirmEditRole = ({ id, roleName, roleDesc }) => {
+  return request({
+    method: 'PUT',
+    url: `roles/${id}`,
+    data: {
+      roleName,
+      roleDesc
+    }
+  })
+}
+
+/**
+ * 角色授权
+ * @param {:roleId角色 ID} data
+ * @param {rids权限 ID 列表（字符串）} data
+ * @returns
+ */
+export const giveRightsToRole = (data) => {
+  return request({
+    method: 'POST',
+    url: `roles/${data.roleId}/rights`,
+    data
+  })
+}

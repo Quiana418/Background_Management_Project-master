@@ -108,10 +108,12 @@ export const delUser = (id) => {
  * @param {用户id} id
  * @returns
  */
-export const distributeUserRole = (data) => {
+export const distributeUserRole = ({ id, rid }) => {
   return request({
-    url: `users/${data.id}/role`,
+    url: `users/${id}/role`,
     method: 'PUT',
-    data
+    data: {
+      rid
+    }
   })
 }

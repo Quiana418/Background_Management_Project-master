@@ -146,12 +146,21 @@
       :visible.sync="dialogFormVisible1"
       class="messageDialog"
     >
-      <div class="user">当前的用户 <span>111</span></div>
-      <div class="roles">当前的角色 <span>222</span></div>
-      <el-form :model="form1">
+      <div class="user">
+        当前的用户 <span>{{ userInfo.username }}</span>
+      </div>
+      <div class="roles">
+        当前的角色 <span>{{ userInfo.role_name }}</span>
+      </div>
+      <el-form>
         <el-form-item label="分配新角色" :label-width="formLabelWidth">
-          <el-select v-model="form1.region" placeholder="请选择">
-            <el-option label="总裁" value="zongcai"></el-option>
+          <el-select v-model="selectedRole" placeholder="请选择">
+            <el-option
+              :label="item.role_name"
+              :value="item.id"
+              v-for="item in rolesList"
+              :key="item.id"
+            ></el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -211,7 +220,8 @@
 
 <script>
 // distributeUserRole
-import { editUserState, addUser, delUser } from '@/api/user'
+import { getRolesList } from '@/api/roles'
+import { editUserState, addUser, delUser, distributeUserRole } from '@/api/user'
 import { validMobile, validEmail } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 export default {
@@ -254,11 +264,13 @@ export default {
         email: '',
         mobile: ''
       },
-      // 信息设置按钮的表单数据
-      form1: {
-        region: ''
-      },
+      // 分配角色 回写的数据
+      userInfo: {},
+      // 分配角色按钮中 选中的角色
+      selectedRole: '',
       formLabelWidth: '160px',
+      // 角色列表
+      rolesList: [],
       // 添加用户弹窗的表单验证
       rules: {
         username1: [
@@ -401,20 +413,32 @@ export default {
           console.log(err)
         }
       })
-    }
+    },
 
-    /* // 点击分配角色按钮 发起请求渲染数据到弹窗里
-    async distributeRole (row) {
+    // 点击分配角色按钮 发起请求 回写数据
+    async distributeRole (userInfo) {
+      this.userInfo = userInfo
       this.dialogFormVisible1 = true
-      this.roleId = row.id
-    }, */
 
-    /* // 点击分配角色弹出框里的确认按钮 发起请求 分配角色
+      // 获取角色列表
+      const res = await getRolesList()
+      // console.log(res)
+      this.rolesList = res.data.data
+    },
+
+    // 点击分配角色弹出框里的确认按钮 发起请求 分配角色
     async distributeUserRole () {
-      const res = await distributeUserRole()
-      console.log(res)
-      this.dialogFormVisible1 = false
-    } */
+      try {
+        if (!this.selectedRole) {
+          return this.$message.error('请选择要分配的角色')
+        }
+        const res = await distributeUserRole({ id: this.userInfos.id, rid: this.selectedRole })
+        console.log(res)
+        this.dialogFormVisible1 = false
+      } catch (err) {
+        console.log(err)
+      }
+    }
   },
 
   computed: {
