@@ -31,7 +31,10 @@
             ></el-button>
           </el-input>
         </div>
-        <el-button type="primary" class="addUser" @click="dialogVisible = true"
+        <el-button
+          type="primary"
+          class="addGoods"
+          @click="$router.push('/goods/add')"
           >添加商品</el-button
         >
       </div>
@@ -46,7 +49,11 @@
           </el-table-column>
           <el-table-column prop="goods_weight" label="商品重量">
           </el-table-column>
-          <el-table-column prop="add_time" label="创建时间"> </el-table-column>
+          <el-table-column prop="add_time" label="创建时间">
+            <template v-slot="scope">
+              {{ scope.row.add_time | formatDate }}
+            </template>
+          </el-table-column>
 
           <!-- 编辑用户信息的按钮 -->
           <el-table-column prop="operation" label="操作">
@@ -56,7 +63,7 @@
                 type="primary"
                 icon="el-icon-edit"
                 class="edit"
-                @click="OnclickEdit(scope.row.id)"
+
               >
               </el-button>
 
@@ -64,7 +71,7 @@
               <el-button
                 type="danger"
                 icon="el-icon-delete"
-                @click="open(scope.row.id)"
+                @click="delGoods(scope.row.goods_id)"
               ></el-button>
             </template>
           </el-table-column>
@@ -74,7 +81,7 @@
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        :current-page="paramsObj.pagenum"
+        :current-page="paramsObj.pagenum.Number"
         :page-sizes="[1, 3, 5, 10]"
         :page-size="paramsObj.pagesize"
         layout="total, sizes, prev, pager, next, jumper"
@@ -86,8 +93,8 @@
 </template>
 
 <script>
-// import dayjs from 'dayjs'
-import { getGoodsList } from '@/api/goods'
+import { getGoodsList, delGoods } from '@/api/goods'
+import dayjs from 'dayjs'
 export default {
   name: 'Goods',
   created () {
@@ -106,7 +113,7 @@ export default {
       // 商品列表数据
       goodsList: [],
       // 商品数据总条数
-      total: '',
+      total: 0,
       getUserList: [],
       user: {},
       dialogVisible: false,
@@ -126,22 +133,38 @@ export default {
         console.log(err)
       }
     },
-    onChangeState () {
-
+    // 点击删除按钮 删除商品
+    async delGoods (id) {
+      try {
+        await this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await delGoods(id)
+        this.getGoodsList()
+      } catch (err) {
+        console.log(err)
+      }
     },
-    OnclickEdit () { },
-    open () { },
-    distributeRole () { },
-    handleSizeChange () { },
-    handleCurrentChange () { }
+
+    // 分页切换效果
+    handleSizeChange (newSize) {
+      this.paramsObj.pagesize = newSize
+      this.getGoodsList()
+    },
+    handleCurrentChange (newPage) {
+      this.paramsObj.pagenum = newPage
+      this.getGoodsList()
+    }
   },
   computed: {},
   watch: {},
   filters: {
     // 把毫秒时间戳转换为具体时间
-    /*  formatDate: {
-      dayjs.unix(this.goodsList.add_time).format('YYYY-MM-DD')
-    } */
+    formatDate (val) {
+      return dayjs.unix(val).format('YYYY-MM-DD')
+    }
   },
   components: {}
 }
@@ -151,15 +174,12 @@ export default {
 .el-card {
   border-radius: 3px;
   margin: 20px;
-  width: 100%;
-  // height: 450px;
-  background-color: #fff;
   .top {
     margin-bottom: 30px;
     height: 40px;
     display: flex;
     align-items: center;
-    .addUser {
+    .addGoods {
       margin-left: 20px;
       margin-top: 14px;
       border: none;

@@ -342,7 +342,7 @@ export default {
     async onConfirm () {
       try {
         await confirmEditRole({ id: this.form.roleId, ...this.form })
-        console.log(this.form.roleId)
+        // console.log(this.form.roleId)
       } catch (err) {
         console.log(err)
       }
